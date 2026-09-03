@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Optional `serde` feature with hand-written `Serialize`/`Deserialize` for `Opening` [#115]
+
 ### Changed
 
 - Update `dusk-bls12_381` dev dependency to v0.14
@@ -118,6 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `CheckBytes` derivation in `Node` [#15]
 
 <!-- ISSUES -->
+[#115]: https://github.com/dusk-network/merkle/issues/115
 [#91]: https://github.com/dusk-network/merkle/issues/91
 [#73]: https://github.com/dusk-network/merkle/issues/73
 [#62]: https://github.com/dusk-network/merkle/issues/62

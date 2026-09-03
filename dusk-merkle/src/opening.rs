@@ -208,6 +208,98 @@ fn fill_opening<T, const H: usize, const A: usize>(
     opening.positions[height] = child_index;
 }
 
+// Hand-written because serde cannot derive over free const-generic arrays.
+#[cfg(feature = "serde")]
+mod serde_impl {
+    use alloc::vec::Vec;
+
+    use serde::de::Error as _;
+    use serde::ser::SerializeStruct;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    use super::Opening;
+
+    impl<T, const H: usize, const A: usize> Serialize for Opening<T, H, A>
+    where
+        T: Serialize,
+    {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            let mut state = serializer.serialize_struct("Opening", 3)?;
+            state.serialize_field("root", &self.root)?;
+            let branch: Vec<_> =
+                self.branch.iter().map(<[T; A]>::as_slice).collect();
+            state.serialize_field("branch", &branch)?;
+            state.serialize_field("positions", &self.positions.as_slice())?;
+            state.end()
+        }
+    }
+
+    #[derive(Deserialize)]
+    #[serde(rename = "Opening")]
+    struct RawOpening<T> {
+        root: T,
+        branch: Vec<Vec<T>>,
+        positions: Vec<usize>,
+    }
+
+    impl<'de, T, const H: usize, const A: usize> Deserialize<'de>
+        for Opening<T, H, A>
+    where
+        T: Deserialize<'de>,
+    {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            let RawOpening {
+                root,
+                branch,
+                positions,
+            } = RawOpening::deserialize(deserializer)?;
+
+            if branch.len() != H || positions.len() != H {
+                return Err(D::Error::custom(
+                    "merkle opening: branch/positions length does not match the expected tree height",
+                ));
+            }
+            if branch.iter().any(|level| level.len() != A) {
+                return Err(D::Error::custom(
+                    "merkle opening: branch level length does not match the expected tree arity",
+                ));
+            }
+            if positions.iter().any(|&position| position >= A) {
+                return Err(D::Error::custom(
+                    "merkle opening: position is outside the expected tree arity",
+                ));
+            }
+
+            let mut branch = branch.into_iter();
+            let branch = core::array::from_fn(|_| {
+                let mut level = branch
+                    .next()
+                    .expect("branch height checked above")
+                    .into_iter();
+                core::array::from_fn(|_| {
+                    level.next().expect("branch arity checked above")
+                })
+            });
+            let mut positions = positions.into_iter();
+            let positions = core::array::from_fn(|_| {
+                positions.next().expect("positions height checked above")
+            });
+
+            Ok(Opening {
+                root,
+                branch,
+                positions,
+            })
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

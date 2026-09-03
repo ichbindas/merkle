@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Optional `serde` support for `Item` and `Opening` [#115]
+
 ## [0.11.0] - 2026-10-09
 
 ### Changed
@@ -106,6 +110,7 @@ Replaced by 0.11.0, which does not keep `dusk-curves` or the `bls-backend-dusk` 
 - Add poseidon-merkle crate [#58]
 
 <!-- ISSUES -->
+[#115]: https://github.com/dusk-network/merkle/issues/115
 [#143]: https://github.com/dusk-network/merkle/issues/143
 [#133]: https://github.com/dusk-network/merkle/issues/133
 [#132]: https://github.com/dusk-network/merkle/issues/132
